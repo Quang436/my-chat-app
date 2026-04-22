@@ -4,18 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPS Premium Messenger - Floating Cloud</title>
+    <title>CPS Premium Chat - Light Version</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5;
-            --bg: #0f172a;
-            --surface: #1e293b;
-            --text-main: #f8fafc;
-            --text-dim: #94a3b8;
-            --me-bubble: #4338ca;
-            --other-bubble: #334155;
-            --private-mode: #be185d;
+            --primary: #0084ff;
+            /* Xanh Messenger */
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --text-main: #1c1e21;
+            --text-dim: #65676b;
+            --me-bubble: #0084ff;
+            --other-bubble: #e4e6eb;
+            --private-mode: #ff4d4d;
         }
 
         * {
@@ -26,42 +27,36 @@
             font-family: 'Outfit', sans-serif;
             margin: 0;
             padding: 0;
-            background: #cbd5e1;
-            background-image: radial-gradient(#94a3b8 1px, transparent 1px);
-            background-size: 20px 20px;
+            background: #e9ebee;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* NÚT CHAT HEAD (FLOATING BUTTON) */
+        /* NÚT CHAT HEAD */
         #chat-launcher {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             background: var(--primary);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.3);
             z-index: 2000;
             transition: 0.3s;
         }
 
-        #chat-launcher:hover {
-            transform: scale(1.1);
-        }
-
         #chat-launcher svg {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             fill: white;
         }
 
-        /* KHUNG CHAT TO (FULL-SIZE CONTAINER) */
+        /* KHUNG CHAT TO (TRẮNG SÁNG) */
         #app-wrapper {
             position: fixed;
             top: 0;
@@ -71,19 +66,21 @@
             display: none;
             justify-content: center;
             align-items: center;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
             z-index: 1999;
-            animation: fadeIn 0.3s ease;
+            animation: scaleIn 0.3s ease;
         }
 
-        @keyframes fadeIn {
+        @keyframes scaleIn {
             from {
                 opacity: 0;
+                transform: scale(0.9);
             }
 
             to {
                 opacity: 1;
+                transform: scale(1);
             }
         }
 
@@ -92,26 +89,28 @@
             max-width: 1200px;
             height: 90vh;
             background: var(--surface);
-            border-radius: 30px;
+            border-radius: 20px;
             display: flex;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
             position: relative;
+            color: var(--text-main);
         }
 
         #sidebar {
             width: 250px;
-            background: rgba(0, 0, 0, 0.3);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            background: #fff;
+            border-right: 1px solid #ddd;
             display: flex;
             flex-direction: column;
         }
 
         .sidebar-header {
-            padding: 25px;
+            padding: 20px;
             font-weight: 600;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid #eee;
+            color: #1c1e21;
+            font-size: 1.1em;
         }
 
         #user-list {
@@ -121,31 +120,32 @@
         }
 
         .user-item {
-            padding: 12px 15px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             cursor: pointer;
             transition: 0.2s;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 5px;
         }
 
         .user-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: #f2f2f2;
         }
 
         .user-item.selected {
-            background: var(--private-mode);
-            color: white;
+            background: #fee2e2;
+            color: #dc2626;
+            font-weight: 600;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #10b981;
+            width: 10px;
+            height: 10px;
+            background: #31a24c;
             border-radius: 50%;
-            box-shadow: 0 0 10px #10b981;
+            border: 2px solid white;
         }
 
         #chat-main {
@@ -153,33 +153,33 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background: #0b1120;
+            background: #fff;
         }
 
         #messages-container {
             position: relative;
             flex: 1;
             overflow-y: auto;
+            background: #fff;
             display: flex;
             flex-direction: column;
         }
 
         #messages {
-            padding: 25px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
         }
 
         #typing-indicator {
-            padding: 0 25px 15px 50px;
+            padding: 5px 25px;
             font-size: 0.85em;
-            color: #10b981;
-            font-style: italic;
+            color: #31a24c;
             display: none;
         }
 
-        /* BONG BÓNG CHAT */
+        /* BONG BÓNG CHAT SÁNG */
         .bubble-row {
             display: flex;
             width: 100%;
@@ -195,128 +195,145 @@
 
         .bubble-row.sys {
             justify-content: center;
+            margin: 10px 0;
         }
 
         .bubble {
             width: fit-content;
-            max-width: 80%;
-            padding: 12px 18px;
-            border-radius: 22px;
+            max-width: 75%;
+            padding: 10px 16px;
+            border-radius: 18px;
             font-size: 0.95em;
             position: relative;
             line-height: 1.4;
             word-wrap: break-word;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
+        /* Tin nhắn của mình */
         .me .bubble {
             background: var(--me-bubble);
-            border-bottom-right-radius: 4px;
             color: white;
-            margin-right: 8px;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 132, 255, 0.2);
         }
 
         .me .bubble::after {
             content: "";
             position: absolute;
             bottom: 0;
-            right: -6px;
-            width: 15px;
-            height: 15px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
             background: var(--me-bubble);
             clip-path: polygon(0 0, 0% 100%, 100% 100%);
         }
 
+        /* Tin nhắn bạn bè */
         .other .bubble {
             background: var(--other-bubble);
+            color: #050505;
             border-bottom-left-radius: 4px;
-            margin-left: 8px;
         }
 
         .other .bubble::after {
             content: "";
             position: absolute;
             bottom: 0;
-            left: -6px;
-            width: 15px;
-            height: 15px;
+            left: -5px;
+            width: 12px;
+            height: 12px;
             background: var(--other-bubble);
             clip-path: polygon(100% 0, 0 100%, 100% 100%);
         }
 
+        .sys .bubble {
+            background: #f0f2f5;
+            color: #65676b;
+            font-size: 0.8em;
+            border-radius: 10px;
+            padding: 4px 12px;
+        }
+
         .private .bubble {
-            background: var(--private-mode) !important;
+            background: #ff4d4d !important;
+            color: white !important;
+        }
+
+        .private .bubble::after {
+            background: #ff4d4d !important;
         }
 
         .bubble-meta {
             font-size: 0.75em;
-            color: var(--text-dim);
-            margin-bottom: 4px;
-            margin-left: 12px;
-            margin-right: 12px;
+            color: #65676b;
+            margin-bottom: 2px;
+            margin-left: 10px;
+            margin-right: 10px;
         }
 
         .me .bubble-meta {
             text-align: right;
         }
 
-        /* Controls */
+        /* Controls Panel */
         #control-panel {
-            padding: 20px 25px;
-            background: #1e293b;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px 20px;
+            background: #fff;
+            border-top: 1px solid #eee;
         }
 
         #private-notice {
-            background: var(--private-mode);
-            color: white;
+            background: #fee2e2;
+            color: #dc2626;
             padding: 6px 15px;
             border-radius: 20px;
             font-size: 0.8em;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             display: none;
             width: fit-content;
+            font-weight: 600;
         }
 
         #input-box {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             align-items: center;
         }
 
         #msg-input {
             flex: 1;
-            background: #0f172a;
-            border: 1px solid #334155;
-            padding: 14px 20px;
-            border-radius: 15px;
-            color: white;
+            background: #f0f2f5;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 20px;
+            color: #050505;
             outline: none;
+            font-size: 0.95em;
         }
 
         #send-btn {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 0 30px;
-            height: 48px;
-            border-radius: 15px;
+            padding: 0 20px;
+            height: 40px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
         }
 
         #emoji-picker {
             position: absolute;
-            bottom: 95px;
-            left: 25px;
-            background: var(--surface);
-            border: 1px solid #334155;
+            bottom: 85px;
+            left: 20px;
+            background: #fff;
+            border: 1px solid #eee;
             border-radius: 15px;
-            padding: 15px;
+            padding: 12px;
             display: none;
             grid-template-columns: repeat(5, 1fr);
             gap: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 100;
         }
 
@@ -326,7 +343,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--surface);
+            background: #fff;
             z-index: 3000;
             display: flex;
             justify-content: center;
@@ -335,56 +352,51 @@
 
         #close-widget {
             position: absolute;
-            top: 25px;
-            right: 25px;
+            top: 20px;
+            right: 20px;
             cursor: pointer;
-            font-size: 1.5em;
-            opacity: 0.5;
-            transition: 0.3s;
+            font-size: 1.2em;
+            color: #65676b;
             z-index: 3001;
-        }
-
-        #close-widget:hover {
-            opacity: 1;
-            transform: rotate(90deg);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- MÔ PHỎNG TRANG WEB ĐANG CÓ GÌ ĐÓ -->
-    <div style="padding: 100px; text-align: center; color: #1e293b">
-        <h1>Trang Web của Quang</h1>
-        <p>Bấm vào bòng bóng chat để bắt đầu thảo luận công khai hoặc riêng tư!</p>
+    <!-- NỀN TRANG WEB SÁNG -->
+    <div style="padding: 100px; text-align: center; color: #64748b">
+        <h1>Welcome to My Portal</h1>
+        <p>Bấm vào nút chat xanh phía dưới để trò chuyện cùng mọi người nhé!</p>
     </div>
 
-    <!-- NÚT CHAT HEAD -->
+    <!-- NÚT CHAT LAUNCHER -->
     <div id="chat-launcher" onclick="toggleChat()">
         <svg viewBox="0 0 24 24">
             <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
         </svg>
     </div>
 
-    <!-- CỬA SỔ CHAT TO (WIDGET TO) -->
+    <!-- CỬA SỔ CHAT LIGHT MODE -->
     <div id="app-wrapper">
         <div id="app">
-            <div id="close-widget" onclick="toggleChat()">✖</div>
+            <div id="close-widget" onclick="toggleChat()">✖ Đóng</div>
 
             <div id="login-screen">
                 <div
-                    style="text-align:center; width: 400px; padding: 50px; background: rgba(0,0,0,0.2); border-radius: 30px;">
-                    <h2>💬 Tham gia ngay</h2>
-                    <input type="text" id="username-in" placeholder="Họ tên của bạn..."
-                        style="width: 100%; padding: 15px; margin: 25px 0; border-radius: 12px; background: #0f172a; color: white; border: 1px solid #334155;">
+                    style="text-align:center; width: 350px; padding: 40px; border: 1px solid #eee; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                    <h2 style="color:var(--primary); margin-top:0">CPS Messenger</h2>
+                    <p style="color:#65676b; font-size:0.9em">Nhập tên của bạn để bắt đầu</p>
+                    <input type="text" id="username-in" placeholder="Họ và tên..."
+                        style="width: 100%; padding: 12px; margin: 20px 0; border-radius: 10px; background: #f0f2f5; border: 1px solid #ddd; outline: none;">
                     <button onclick="login()"
-                        style="width: 100%; height: 50px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Vào
-                        phòng Chat</button>
+                        style="width: 100%; height: 45px; background: var(--primary); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600;">Vào
+                        Chat</button>
                 </div>
             </div>
 
             <div id="sidebar">
-                <div class="sidebar-header">BẠN BÈ ONLINE</div>
+                <div class="sidebar-header">Người dùng Online</div>
                 <div id="user-list"></div>
             </div>
 
@@ -402,16 +414,18 @@
                     <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🔥')">🔥</span>
                     <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🎉')">🎉</span>
                     <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🚀')">🚀</span>
-                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('✅')">✅</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('😘')">😘</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🤩')">🤩</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('😎')">😎</span>
                 </div>
 
                 <div id="control-panel">
-                    <div id="private-notice">🔒 ĐANG CHAT RIÊNG VỚI: <span id="target-name"></span></div>
+                    <div id="private-notice">🔒 Chat riêng với: <span id="target-name"></span></div>
                     <div id="input-box">
-                        <span onclick="toggleEmoji()" style="cursor:pointer; font-size: 1.8em;">😊</span>
-                        <input type="text" id="msg-input" placeholder="Nhập nội dung tin nhắn..." oninput="sendTyping()"
+                        <span onclick="toggleEmoji()" style="cursor:pointer; font-size: 1.6em;">😊</span>
+                        <input type="text" id="msg-input" placeholder="Aa" oninput="sendTyping()"
                             onkeypress="if(event.key==='Enter') send()">
-                        <button id="send-btn" onclick="send()">Gửi đi</button>
+                        <button id="send-btn" onclick="send()">Gửi</button>
                     </div>
                 </div>
             </div>
@@ -422,7 +436,6 @@
 
     <script>
         let ws, myName = "", targetUser = null, typingTimer;
-        // KIỂM TRA LẠI LINK RENDER CỦA BẠN
         const URL = "wss://my-chat-app-2a1d.onrender.com";
 
         function toggleChat() {
@@ -462,7 +475,7 @@
             users.forEach(u => {
                 const div = document.createElement('div');
                 div.className = 'user-item' + (targetUser === u ? ' selected' : '');
-                div.innerHTML = `<div class="status-dot"></div> ${u}`;
+                div.innerHTML = `<div class="status-dot"></div> <span style="flex:1">${u}</span>`;
                 div.onclick = () => {
                     targetUser = (targetUser === u) ? null : u;
                     const notice = document.getElementById('private-notice');
@@ -481,16 +494,16 @@
             const scrollArea = document.getElementById('messages-container');
             const row = document.createElement('div');
 
-            let time = "", sender = "Hệ thống", body = msg;
+            let time = "", sender = "System", body = msg;
             const m = msg.match(/^\[(.*?)\] \[(.*?)\]: (.*)/);
             if (m) { time = m[1]; sender = m[2]; body = m[3]; }
 
-            row.className = 'bubble-row ' + (sender === myName ? 'me' : (sender === "Hệ thống" ? 'sys' : 'other'));
+            row.className = 'bubble-row ' + (sender === myName ? 'me' : (sender === "System" ? 'sys' : 'other'));
             if (isPrivate) row.classList.add('private');
 
             const alignStyle = (sender === myName) ? 'align-items: flex-end;' : 'align-items: flex-start;';
 
-            if (sender === "Hệ thống") {
+            if (sender === "System") {
                 row.innerHTML = `<div class="bubble">${body}</div>`;
             } else {
                 row.innerHTML = `<div style="display:flex; flex-direction:column; ${alignStyle} max-width: 80%;">
