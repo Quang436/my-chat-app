@@ -4,28 +4,31 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import java.net.InetSocketAddress;
-import java.util.Map;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer extends WebSocketServer {
     private static Map<WebSocket, String> onlineUsers = new ConcurrentHashMap<>();
+    // Danh sách lưu lịch sử tin nhắn (tối đa 50 tin)
+    private static List<String> chatHistory = Collections.synchronizedList(new ArrayList<>());
+    private static final int MAX_HISTORY = 50;
 
     public ChatServer(int port) {
         super(new InetSocketAddress(port));
-        // Tự động kiểm tra và dọn dẹp các kết nối "ma" sau mỗi 10 giây
         setConnectionLostTimeout(10);
     }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        // Mới kết nối chưa có tên
     }
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         String username = onlineUsers.remove(conn);
         if (username != null) {
-            broadcast("CHAT:[" + username + " đã rời phòng]");
+            broadcastAndSave("CHAT:[Hệ thống]: " + username + " đã rời phòng");
             updateOnlineList();
         }
     }
@@ -34,42 +37,63 @@ public class ChatServer extends WebSocketServer {
     public void onMessage(WebSocket conn, String message) {
         if (message.startsWith("LOGIN:")) {
             String username = message.substring(6).trim();
-
-            // --- CẢI TIẾN: Nếu tên đã tồn tại, hãy xóa kết nối cũ trước khi cho người mới
-            // vào ---
-            WebSocket oldConn = null;
-            for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
-                if (entry.getValue().equals(username)) {
-                    oldConn = entry.getKey();
-                    break;
-                }
-            }
-            if (oldConn != null) {
-                oldConn.close(1000, "Đăng nhập từ nơi khác");
-                onlineUsers.remove(oldConn);
-            }
-
-            onlineUsers.put(conn, username);
-            conn.send("LOGIN_SUCCESS");
-            broadcast("CHAT:[" + username + " đã tham gia phòng]");
-            updateOnlineList();
-
+            handleLogin(conn, username);
         } else if (message.startsWith("MSG:")) {
             String username = onlineUsers.get(conn);
             if (username != null) {
-                broadcast("CHAT:[" + username + "]: " + message.substring(4));
+                String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+                String formattedMsg = "CHAT:[" + time + "] [" + username + "]: " + message.substring(4);
+                broadcastAndSave(formattedMsg);
             }
         }
     }
 
+    private void handleLogin(WebSocket conn, String username) {
+        // Xử lý đá kết nối cũ nếu trùng tên
+        WebSocket oldConn = null;
+        for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
+            if (entry.getValue().equals(username)) {
+                oldConn = entry.getKey();
+                break;
+            }
+        }
+        if (oldConn != null) {
+            oldConn.close(1000, "Đăng nhập từ nơi khác");
+            onlineUsers.remove(oldConn);
+        }
+
+        onlineUsers.put(conn, username);
+        conn.send("LOGIN_SUCCESS");
+
+        // --- GỬI LỊCH SỬ TIN NHẮN CHO NGƯỜI MỚI VÀO ---
+        synchronized (chatHistory) {
+            for (String historyMsg : chatHistory) {
+                conn.send(historyMsg);
+            }
+        }
+
+        broadcastAndSave("CHAT:[Hệ thống]: " + username + " đã tham gia phòng");
+        updateOnlineList();
+    }
+
+    // Vừa gửi tin nhắn cho mọi người, vừa lưu vào lịch sử
+    private void broadcastAndSave(String message) {
+        synchronized (chatHistory) {
+            chatHistory.add(message);
+            if (chatHistory.size() > MAX_HISTORY) {
+                chatHistory.remove(0); // Xóa tin cũ nhất nếu vượt quá giới hạn
+            }
+        }
+        broadcast(message);
+    }
+
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        // Bỏ qua lỗi nhỏ
     }
 
     @Override
     public void onStart() {
-        System.out.println("Server đã sẵn sàng tại port: " + getPort());
+        System.out.println("Cps Cloud Server đang chạy tại port: " + getPort());
     }
 
     private void updateOnlineList() {
@@ -85,7 +109,6 @@ public class ChatServer extends WebSocketServer {
         String envPort = System.getenv("PORT");
         if (envPort != null)
             port = Integer.parseInt(envPort);
-
         ChatServer server = new ChatServer(port);
         server.start();
     }
