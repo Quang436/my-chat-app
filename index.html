@@ -13,9 +13,9 @@
             --surface: #1e293b;
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
-            --me-bubble: #4f46e5;
+            --me-bubble: #4338ca;
             --other-bubble: #334155;
-            --private-mode: #db2777;
+            --private-mode: #be185d;
         }
 
         * {
@@ -42,11 +42,12 @@
             display: flex;
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
         #sidebar {
             width: 260px;
-            background: rgba(0, 0, 0, 0.2);
+            background: rgba(0, 0, 0, 0.3);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
@@ -56,6 +57,7 @@
             padding: 25px;
             font-weight: 600;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.1);
         }
 
         #user-list {
@@ -82,6 +84,7 @@
         .user-item.selected {
             background: var(--private-mode);
             color: white;
+            box-shadow: 0 4px 10px rgba(190, 24, 93, 0.3);
         }
 
         .status-dot {
@@ -89,29 +92,58 @@
             height: 8px;
             background: #10b981;
             border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
         }
 
-        /* QUAN TRỌNG: Thêm position: relative vào đây */
         #chat-main {
             flex: 1;
             display: flex;
             flex-direction: column;
             position: relative;
+            background: #0b1120;
         }
 
-        #messages {
+        #messages-container {
+            position: relative;
             flex: 1;
-            padding: 25px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+        }
+
+        #messages {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #typing-indicator {
+            padding: 0 25px 15px 50px;
+            font-size: 0.85em;
+            color: #10b981;
+            font-style: italic;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
         }
 
         .bubble-row {
             display: flex;
             width: 100%;
-            margin-bottom: 5px;
         }
 
         .bubble-row.me {
@@ -124,71 +156,118 @@
 
         .bubble-row.sys {
             justify-content: center;
-            opacity: 0.7;
-            font-size: 0.8em;
+            margin: 10px 0;
         }
 
         .bubble {
-            max-width: 70%;
-            padding: 10px 16px;
-            border-radius: 18px;
+            max-width: 75%;
+            padding: 12px 18px;
+            border-radius: 22px;
             font-size: 0.95em;
             position: relative;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .me .bubble {
             background: var(--me-bubble);
             border-bottom-right-radius: 4px;
+            color: white;
+            margin-right: 8px;
+        }
+
+        .me .bubble::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: -6px;
+            width: 15px;
+            height: 15px;
+            background: var(--me-bubble);
+            clip-path: polygon(0 0, 0% 100%, 100% 100%);
         }
 
         .other .bubble {
             background: var(--other-bubble);
             border-bottom-left-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .other .bubble::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: -6px;
+            width: 15px;
+            height: 15px;
+            background: var(--other-bubble);
+            clip-path: polygon(100% 0, 0 100%, 100% 100%);
+        }
+
+        .sys .bubble {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+            font-size: 0.8em;
+            border-radius: 10px;
+            padding: 5px 15px;
+            box-shadow: none;
         }
 
         .private .bubble {
             background: var(--private-mode) !important;
-            box-shadow: 0 0 15px rgba(219, 39, 119, 0.4);
+            box-shadow: 0 0 20px rgba(190, 24, 93, 0.4);
+        }
+
+        .private .bubble::after {
+            background: var(--private-mode) !important;
         }
 
         .bubble-meta {
             font-size: 0.7em;
             color: var(--text-dim);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
 
         .me .bubble-meta {
             text-align: right;
+            margin-right: 12px;
         }
 
+        .other .bubble-meta {
+            margin-left: 12px;
+        }
+
+        /* Control Panel */
         #control-panel {
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
+            padding: 20px 25px;
+            background: #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         #private-notice {
             background: var(--private-mode);
             color: white;
-            padding: 5px 15px;
+            padding: 6px 15px;
             border-radius: 20px;
             font-size: 0.8em;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             display: none;
             width: fit-content;
-            animation: pulse 2s infinite;
+            animation: bounce 2s infinite;
         }
 
-        @keyframes pulse {
-            0% {
-                opacity: 1;
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
             }
 
             50% {
-                opacity: 0.7;
-            }
-
-            100% {
-                opacity: 1;
+                transform: translateY(-3px);
             }
         }
 
@@ -202,10 +281,15 @@
             flex: 1;
             background: #0f172a;
             border: 1px solid #334155;
-            padding: 12px 20px;
-            border-radius: 12px;
+            padding: 14px 20px;
+            border-radius: 15px;
             color: white;
             outline: none;
+            transition: 0.2s;
+        }
+
+        #msg-input:focus {
+            border-color: var(--primary);
         }
 
         button {
@@ -213,31 +297,31 @@
             color: white;
             border: none;
             padding: 0 25px;
-            height: 45px;
-            border-radius: 12px;
+            height: 48px;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: 600;
         }
 
-        /* BẢNG EMOJI */
+        /* BẢNG EMOJI ĐÃ CHUYỂN SANG TRÁI */
         #emoji-picker {
             position: absolute;
-            bottom: 85px;
-            right: 20px;
+            bottom: 95px;
+            left: 25px;
             background: var(--surface);
             border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 12px;
+            border-radius: 15px;
+            padding: 15px;
             display: none;
             grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             z-index: 100;
         }
 
         .emoji-item {
             cursor: pointer;
-            font-size: 1.4em;
+            font-size: 1.5em;
             transition: 0.2s;
         }
 
@@ -263,22 +347,26 @@
 <body>
 
     <div id="login-screen">
-        <div style="background: var(--surface); padding: 40px; border-radius: 24px; text-align: center; width: 350px;">
-            <h2 style="margin-top:0">Đăng nhập Chat</h2>
-            <input type="text" id="username-in" placeholder="Nhập tên của bạn..."
-                style="width: 100%; padding: 12px; margin: 20px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white;">
-            <button onclick="login()" style="width: 100%;">Bắt đầu ngay</button>
+        <div
+            style="background: var(--surface); padding: 50px; border-radius: 30px; text-align: center; width: 400px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);">
+            <h1 style="margin-top:0">CPS Chat</h1>
+            <p style="color: var(--text-dim)">Kết nối mọi lúc, mọi nơi</p>
+            <input type="text" id="username-in" placeholder="Họ tên của bạn..."
+                style="width: 100%; padding: 15px; margin: 25px 0; border-radius: 12px; border: 1px solid #334155; background: #0b1120; color: white; outline: none;">
+            <button onclick="login()" style="width: 100%; font-size: 1.1em;">Bắt đầu trò chuyện</button>
         </div>
     </div>
 
     <div id="app">
         <div id="sidebar">
-            <div class="sidebar-header">Bạn bè Online</div>
+            <div class="sidebar-header">Đang Online</div>
             <div id="user-list"></div>
-            <div id="typing-box" style="padding: 10px; color: #10b981; font-size: 0.8em; min-height: 40px;"></div>
         </div>
         <div id="chat-main">
-            <div id="messages"></div>
+            <div id="messages-container">
+                <div id="messages"></div>
+                <div id="typing-indicator"></div>
+            </div>
 
             <div id="emoji-picker">
                 <span class="emoji-item" onclick="addEmoji('😊')">😊</span>
@@ -294,13 +382,13 @@
             </div>
 
             <div id="control-panel">
-                <div id="private-notice">🔒 Đang chat riêng với: <span id="target-name"></span> (Bấm lại để thoát)</div>
+                <div id="private-notice">🔒 CHẾ ĐỘ THÌ THẦM: <span id="target-name"></span></div>
                 <div id="input-box">
                     <span onclick="toggleEmoji()" id="emoji-toggle"
-                        style="cursor:pointer; font-size: 1.6em; filter: grayscale(1); transition: 0.3s;">😊</span>
-                    <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." oninput="sendTyping()"
-                        onkeypress="if(event.key==='Enter') send()">
-                    <button id="send-btn" onclick="send()">Gửi</button>
+                        style="cursor:pointer; font-size: 1.8em; filter: grayscale(1);">😊</span>
+                    <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." autocomplete="off"
+                        oninput="sendTyping()" onkeypress="if(event.key==='Enter') send()">
+                    <button id="send-btn" onclick="send()">Gửi đi</button>
                 </div>
             </div>
         </div>
@@ -310,7 +398,6 @@
 
     <script>
         let ws, myName = "", targetUser = null, typingTimer;
-        // HÃY ĐẢM BẢO LINK NÀY LÀ CỦA RENDER BẠN ĐANG CHẠY
         const URL = "wss://my-chat-app-2a1d.onrender.com";
 
         function login() {
@@ -319,6 +406,7 @@
                 ws = new WebSocket(URL);
                 ws.onopen = () => ws.send("LOGIN:" + myName);
                 ws.onmessage = (e) => handleMessage(e.data);
+                ws.onclose = () => alert("Mất kết nối server!");
             }
         }
 
@@ -370,22 +458,27 @@
 
         function addBubble(msg, isPrivate) {
             const container = document.getElementById('messages');
+            const scrollArea = document.getElementById('messages-container');
             const row = document.createElement('div');
 
-            let time = "00:00", sender = "Hệ thống", body = msg;
+            let time = "", sender = "Hệ thống", body = msg;
             const m = msg.match(/^\[(.*?)\] \[(.*?)\]: (.*)/);
             if (m) { time = m[1]; sender = m[2]; body = m[3]; }
 
             row.className = 'bubble-row ' + (sender === myName ? 'me' : (sender === "Hệ thống" ? 'sys' : 'other'));
             if (isPrivate) row.classList.add('private');
 
-            row.innerHTML = `<div style="display:flex; flex-direction:column">
-                <div class="bubble-meta">${sender !== "Hệ thống" ? sender + " • " + time : ""}</div>
-                <div class="bubble">${body}</div>
-            </div>`;
+            if (sender === "Hệ thống") {
+                row.innerHTML = `<div class="bubble">${body}</div>`;
+            } else {
+                row.innerHTML = `<div style="display:flex; flex-direction:column; max-width:75%">
+                    <div class="bubble-meta">${sender} • ${time}</div>
+                    <div class="bubble">${body}</div>
+                </div>`;
+            }
 
             container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
+            scrollArea.scrollTop = scrollArea.scrollHeight;
         }
 
         function send() {
@@ -401,26 +494,21 @@
 
         function sendTyping() { ws.send("TYPING:1"); }
         function showTyping(u) {
-            const box = document.getElementById('typing-box');
-            box.innerText = u + " đang soạn...";
+            const indicator = document.getElementById('typing-indicator');
+            const scrollArea = document.getElementById('messages-container');
+            indicator.innerText = u + " đang soạn tin nhắn...";
+            indicator.style.display = 'block';
+            scrollArea.scrollTop = scrollArea.scrollHeight;
             clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => box.innerText = "", 2000);
+            typingTimer = setTimeout(() => indicator.style.display = 'none', 2000);
         }
         function toggleEmoji() {
             const p = document.getElementById('emoji-picker');
             const toggle = document.getElementById('emoji-toggle');
-            if (p.style.display === 'grid') {
-                p.style.display = 'none';
-                toggle.style.filter = 'grayscale(1)';
-            } else {
-                p.style.display = 'grid';
-                toggle.style.filter = 'grayscale(0)';
-            }
+            p.style.display = (p.style.display === 'grid') ? 'none' : 'grid';
+            toggle.style.filter = (p.style.display === 'grid') ? 'grayscale(0)' : 'grayscale(1)';
         }
-        function addEmoji(e) {
-            document.getElementById('msg-input').value += e;
-            document.getElementById('msg-input').focus();
-        }
+        function addEmoji(e) { document.getElementById('msg-input').value += e; document.getElementById('msg-input').focus(); }
     </script>
 </body>
 
