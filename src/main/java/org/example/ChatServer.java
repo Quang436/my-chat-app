@@ -11,13 +11,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer extends WebSocketServer {
     private static Map<WebSocket, String> onlineUsers = new ConcurrentHashMap<>();
-    // Danh sách lưu lịch sử tin nhắn (tối đa 50 tin)
     private static List<String> chatHistory = Collections.synchronizedList(new ArrayList<>());
     private static final int MAX_HISTORY = 50;
 
     public ChatServer(int port) {
         super(new InetSocketAddress(port));
-        setConnectionLostTimeout(10);
+        setConnectionLostTimeout(15);
     }
 
     @Override
@@ -36,20 +35,18 @@ public class ChatServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         if (message.startsWith("LOGIN:")) {
-            String username = message.substring(6).trim();
-            handleLogin(conn, username);
+            handleLogin(conn, message.substring(6).trim());
         } else if (message.startsWith("MSG:")) {
-            String username = onlineUsers.get(conn);
-            if (username != null) {
-                String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
-                String formattedMsg = "CHAT:[" + time + "] [" + username + "]: " + message.substring(4);
-                broadcastAndSave(formattedMsg);
-            }
+            handlePublicMessage(conn, message.substring(4));
+        } else if (message.startsWith("PRIVATE:")) {
+            handlePrivateMessage(conn, message.substring(8));
+        } else if (message.startsWith("TYPING:")) {
+            broadcastExcept(conn, "SYSTEM_TYPING:" + onlineUsers.get(conn));
         }
     }
 
     private void handleLogin(WebSocket conn, String username) {
-        // Xử lý đá kết nối cũ nếu trùng tên
+        // Đá kết nối cũ nếu trùng tên
         WebSocket oldConn = null;
         for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
             if (entry.getValue().equals(username)) {
@@ -65,26 +62,56 @@ public class ChatServer extends WebSocketServer {
         onlineUsers.put(conn, username);
         conn.send("LOGIN_SUCCESS");
 
-        // --- GỬI LỊCH SỬ TIN NHẮN CHO NGƯỜI MỚI VÀO ---
+        // Gửi lịch sử
         synchronized (chatHistory) {
-            for (String historyMsg : chatHistory) {
-                conn.send(historyMsg);
-            }
+            for (String h : chatHistory)
+                conn.send(h);
         }
 
         broadcastAndSave("CHAT:[Hệ thống]: " + username + " đã tham gia phòng");
         updateOnlineList();
     }
 
-    // Vừa gửi tin nhắn cho mọi người, vừa lưu vào lịch sử
+    private void handlePublicMessage(WebSocket sender, String text) {
+        String user = onlineUsers.get(sender);
+        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+        broadcastAndSave("CHAT:[" + time + "] [" + user + "]: " + text);
+    }
+
+    private void handlePrivateMessage(WebSocket sender, String data) {
+        // Cấu trúc: targetName|message
+        int sep = data.indexOf("|");
+        if (sep == -1)
+            return;
+        String targetName = data.substring(0, sep);
+        String text = data.substring(sep + 1);
+        String senderName = onlineUsers.get(sender);
+        String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+
+        String formatted = "PRIVATE_CHAT:[" + time + "] (Thì thầm) [" + senderName + "]: " + text;
+
+        // Gửi cho người nhận và chính mình
+        for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
+            if (entry.getValue().equals(targetName) || entry.getValue().equals(senderName)) {
+                entry.getKey().send(formatted);
+            }
+        }
+    }
+
     private void broadcastAndSave(String message) {
         synchronized (chatHistory) {
             chatHistory.add(message);
-            if (chatHistory.size() > MAX_HISTORY) {
-                chatHistory.remove(0); // Xóa tin cũ nhất nếu vượt quá giới hạn
-            }
+            if (chatHistory.size() > MAX_HISTORY)
+                chatHistory.remove(0);
         }
         broadcast(message);
+    }
+
+    private void broadcastExcept(WebSocket exclude, String msg) {
+        for (WebSocket conn : onlineUsers.keySet()) {
+            if (conn != exclude)
+                conn.send(msg);
+        }
     }
 
     @Override
@@ -93,7 +120,7 @@ public class ChatServer extends WebSocketServer {
 
     @Override
     public void onStart() {
-        System.out.println("Cps Cloud Server đang chạy tại port: " + getPort());
+        System.out.println("Advanced Server started.");
     }
 
     private void updateOnlineList() {
@@ -109,7 +136,6 @@ public class ChatServer extends WebSocketServer {
         String envPort = System.getenv("PORT");
         if (envPort != null)
             port = Integer.parseInt(envPort);
-        ChatServer server = new ChatServer(port);
-        server.start();
+        new ChatServer(port).start();
     }
 }

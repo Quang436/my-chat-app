@@ -4,272 +4,492 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPS Cloud Chat - Web Version</title>
+    <title>CPS Premium Messenger - Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
             --bg: #0f172a;
-            --glass: rgba(30, 41, 59, 0.7);
+            --surface: #1e293b;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --me-bubble: #4f46e5;
+            --other-bubble: #334155;
+            --private-bg: #831843;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Outfit', sans-serif;
             background: var(--bg);
-            color: white;
+            color: var(--text-main);
             margin: 0;
             display: flex;
             height: 100vh;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
-        #chat-container {
-            width: 90%;
-            max-width: 900px;
-            height: 85vh;
-            background: var(--glass);
-            backdrop-filter: blur(12px);
+        #app {
+            width: 95%;
+            max-width: 1100px;
+            height: 90vh;
+            background: var(--surface);
             border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 280px;
+            background: rgba(0, 0, 0, 0.2);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        #header {
-            padding: 20px 30px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #status-dot {
-            width: 10px;
-            height: 10px;
-            background: #ef4444;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-            box-shadow: 0 0 10px #ef4444;
-        }
-
-        #status-dot.online {
-            background: #10b981;
-            box-shadow: 0 0 10px #10b981;
-        }
-
-        #main-content {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
+        .sidebar-header {
+            padding: 25px;
+            font-weight: 600;
+            font-size: 1.25em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         #user-list {
-            width: 200px;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            font-size: 0.9em;
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .user-item {
+            padding: 12px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+
+        .user-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-item.selected {
+            background: var(--me-bubble);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+        }
+
+        #typing-status {
+            padding: 15px;
+            font-size: 0.85em;
+            color: #10b981;
+            min-height: 45px;
+            font-style: italic;
+        }
+
+        /* Main Chat Area */
+        #chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
         #messages {
             flex: 1;
-            padding: 20px;
+            padding: 25px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.02) 1px, transparent 0);
+            background-size: 32px 32px;
         }
 
-        .msg {
-            padding: 10px 16px;
-            border-radius: 12px;
-            max-width: 80%;
-            line-height: 1.5;
+        /* Bubbles */
+        .bubble-row {
+            display: flex;
+            width: 100%;
         }
 
-        .msg.system {
-            color: #94a3b8;
+        .bubble-row.me {
+            justify-content: flex-end;
+        }
+
+        .bubble-row.other {
+            justify-content: flex-start;
+        }
+
+        .bubble-row.sys {
+            justify-content: center;
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 18px;
+            font-size: 0.95em;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        .me .bubble {
+            background: var(--me-bubble);
+            border-bottom-right-radius: 4px;
+            color: white;
+        }
+
+        .other .bubble {
+            background: var(--other-bubble);
+            border-bottom-left-radius: 4px;
+            color: white;
+        }
+
+        .sys .bubble {
+            background: transparent;
+            color: var(--text-dim);
+            font-size: 0.8em;
             font-style: italic;
-            align-self: center;
-            font-size: 0.85em;
         }
 
-        .msg.user {
-            background: rgba(255, 255, 255, 0.05);
-            align-self: flex-start;
+        .private .bubble {
+            background: var(--private-bg) !important;
+            border: 1px solid #f472b6;
         }
 
-        .msg.me {
-            background: var(--primary);
-            align-self: flex-end;
+        .bubble-meta {
+            font-size: 0.7em;
+            margin-bottom: 4px;
+            color: var(--text-dim);
         }
 
-        #input-area {
-            padding: 20px 30px;
+        .me .bubble-meta {
+            text-align: right;
+        }
+
+        /* Input Area */
+        #control-panel {
+            padding: 20px 25px;
             background: rgba(0, 0, 0, 0.2);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #input-box {
             display: flex;
             gap: 12px;
+            align-items: center;
         }
 
-        input {
+        #msg-input {
             flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px 20px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 14px 20px;
+            border-radius: 14px;
             color: white;
             outline: none;
+            transition: 0.3s;
+        }
+
+        #msg-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
         button {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 0 24px;
-            border-radius: 12px;
+            padding: 14px 25px;
+            border-radius: 14px;
             cursor: pointer;
             font-weight: 600;
+        }
+
+        /* Emoji */
+        #emoji-btn {
+            font-size: 1.5em;
+            cursor: pointer;
+            opacity: 0.6;
             transition: 0.3s;
         }
 
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
+        #emoji-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
         }
 
-        /* Login Modal */
-        #login-modal {
+        #emoji-picker {
+            position: absolute;
+            bottom: 90px;
+            right: 25px;
+            background: var(--surface);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 10px;
+            display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 5px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .emoji {
+            cursor: pointer;
+            font-size: 1.3em;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .emoji:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Login */
+        #login-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: var(--bg);
+            z-index: 1000;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 100;
         }
 
-        .login-box {
-            background: var(--glass);
+        .login-card {
+            background: var(--surface);
             padding: 40px;
-            border-radius: 24px;
+            border-radius: 32px;
+            width: 400px;
             text-align: center;
-            width: 350px;
+        }
+
+        /* Private Target Label */
+        #recipient-label {
+            font-size: 0.8em;
+            color: #f472b6;
+            margin-bottom: 8px;
+            display: none;
         }
     </style>
 </head>
 
 <body>
 
-    <div id="login-modal">
-        <div class="login-box">
-            <h2 style="margin-top: 0">Tham gia chat ngay?</h2>
-            <p style="color: #94a3b8; font-size: 0.9em">Nhập tên của bạn để bắt đầu</p>
-            <input type="text" id="username-input" placeholder="Tên của bạn..." style="width: 80%; margin-bottom: 20px">
-            <br>
-            <button onclick="startChat()" style="width: 90%; height: 50px">Tham gia ngay</button>
+    <div id="login-screen">
+        <div class="login-card">
+            <h1>👋 Xin chào!</h1>
+            <p style="color: var(--text-dim)">Nhập tên của bạn để bắt đầu trò chuyện</p>
+            <input type="text" id="username-in" placeholder="Ví dụ: Quang"
+                style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; margin: 20px 0;">
+            <button onclick="login()" style="width: 100%; height: 55px; font-size: 1.1em">Vào phòng ngay</button>
         </div>
     </div>
 
-    <div id="chat-container">
-        <div id="header">
-            <div style="font-size: 1.2em; font-weight: 600">CPS Cloud Messenger</div>
-            <div style="font-size: 0.9em">
-                <span id="status-dot"></span>
-                <span id="status-text">Đang kết nối...</span>
-            </div>
+    <div id="app">
+        <div id="sidebar">
+            <div class="sidebar-header">Phòng Chat</div>
+            <div id="user-list"></div>
+            <div id="typing-status"></div>
         </div>
-        <div id="main-content">
-            <div id="user-list">
-                <div style="margin-bottom: 15px; color: #6366f1; font-weight: 600">ONLINE</div>
-                <div id="users"></div>
-            </div>
+        <div id="chat-main">
             <div id="messages"></div>
-        </div>
-        <div id="input-area">
-            <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." onkeypress="handleKey(event)">
-            <button onclick="send()">Gửi</button>
+
+            <div id="emoji-picker">
+                <span class="emoji" onclick="addEmoji('😀')">😀</span><span class="emoji"
+                    onclick="addEmoji('😂')">😂</span><span class="emoji" onclick="addEmoji('😍')">😍</span>
+                <span class="emoji" onclick="addEmoji('👍')">👍</span><span class="emoji"
+                    onclick="addEmoji('🔥')">🔥</span><span class="emoji" onclick="addEmoji('🎉')">🎉</span>
+                <span class="emoji" onclick="addEmoji('❤️')">❤️</span><span class="emoji"
+                    onclick="addEmoji('🙌')">🙌</span><span class="emoji" onclick="addEmoji('🚀')">🚀</span>
+                <span class="emoji" onclick="addEmoji('🤔')">🤔</span><span class="emoji"
+                    onclick="addEmoji('😎')">😎</span><span class="emoji" onclick="addEmoji('✨')">✨</span>
+            </div>
+
+            <div id="control-panel">
+                <div id="recipient-label">Đang chat riêng với: <b id="target-name"></b> (Bấm lần nữa để hủy)</div>
+                <div id="input-box">
+                    <span id="emoji-btn" onclick="toggleEmoji()">😊</span>
+                    <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." oninput="sendTyping()"
+                        onkeypress="handleEnter(event)">
+                    <button onclick="send()">Gửi</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <audio id="ting-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
     <script>
         let ws;
-        let username = "";
-        // THAY ĐỊA CHỈ NÀY BẰNG LINK RENDER CỦA BẠN
-        const SERVER_URL = "wss://my-chat-app-2a1d.onrender.com";
+        let myName = "";
+        let targetUser = null;
+        let typingTimeout;
+        const RENDER_URL = "wss://my-chat-app-2a1d.onrender.com"; // THAY ĐỔI ĐỊA CHỈ CỦA BẠN TẠI ĐÂY
 
-        function startChat() {
-            username = document.getElementById('username-input').value.trim();
-            if (!username) return alert("Vui lòng nhập tên!");
-
+        function login() {
+            myName = document.getElementById('username-in').value.trim();
+            if (!myName) return;
             connect();
         }
 
         function connect() {
-            ws = new WebSocket(SERVER_URL);
-
-            ws.onopen = () => {
-                ws.send("LOGIN:" + username);
-            };
-
+            ws = new WebSocket(RENDER_URL);
+            ws.onopen = () => ws.send("LOGIN:" + myName);
             ws.onmessage = (e) => {
                 const data = e.data;
                 if (data === "LOGIN_SUCCESS") {
-                    document.getElementById('login-modal').style.display = 'none';
-                    document.getElementById('status-dot').className = 'online';
-                    document.getElementById('status-text').innerText = "Đã kết nối Cloud";
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('msg-input').focus();
                 } else if (data.startsWith("CHAT:")) {
-                    addMsg(data.substring(5));
+                    addBubble(data.substring(5), false);
+                    playTing();
+                } else if (data.startsWith("PRIVATE_CHAT:")) {
+                    addBubble(data.substring(13), true);
+                    playTing();
                 } else if (data.startsWith("UPDATE_USER_LIST:")) {
-                    updateUsers(data.substring(17));
+                    renderUserList(data.substring(17));
+                } else if (data.startsWith("SYSTEM_TYPING:")) {
+                    showTyping(data.substring(14));
                 } else if (data.startsWith("ERROR:")) {
                     alert(data.substring(6));
-                    ws.close();
                 }
             };
-
-            ws.onclose = () => {
-                document.getElementById('status-dot').className = '';
-                document.getElementById('status-text').innerText = "Mất kết nối";
-                setTimeout(connect, 3000); // Tự động kết nối lại
-            };
         }
 
-        function addMsg(text) {
-            const div = document.createElement('div');
-            if (text.includes("***")) {
-                div.className = 'msg system';
-                div.innerText = text;
-            } else {
-                div.className = 'msg user';
-                // Kiểm tra nếu là tin nhắn của mình
-                if (text.includes("[" + username + "]:")) div.className = 'msg me';
-                div.innerText = text;
+        function addBubble(fullMsg, isPrivate) {
+            const container = document.getElementById('messages');
+            const row = document.createElement('div');
+
+            // Xử lý tách thông tin: [17:00] [Ten]: Noi dung
+            let time = "", sender = "", body = "";
+            const timeMatch = fullMsg.match(/^\[(.*?)\]/);
+            if (timeMatch) {
+                time = timeMatch[1];
+                const parts = fullMsg.replace(timeMatch[0], "").trim().split("]:");
+                if (parts.length > 1) {
+                    sender = parts[0].replace("[", "").trim();
+                    body = parts[1].trim();
+                } else {
+                    body = fullMsg;
+                    row.className = 'bubble-row sys';
+                }
             }
-            const box = document.getElementById('messages');
-            box.appendChild(div);
-            box.scrollTop = box.scrollHeight;
+
+            if (!row.className) {
+                row.className = 'bubble-row ' + (sender === myName ? 'me' : 'other');
+                if (isPrivate) row.classList.add('private');
+            }
+
+            const bubbleWrap = document.createElement('div');
+            bubbleWrap.style.display = "flex";
+            bubbleWrap.style.flexDirection = "column";
+
+            if (sender && sender !== myName) {
+                const meta = document.createElement('div');
+                meta.className = 'bubble-meta';
+                meta.innerText = sender + " • " + time;
+                bubbleWrap.appendChild(meta);
+            } else if (sender === myName) {
+                const meta = document.createElement('div');
+                meta.className = 'bubble-meta';
+                meta.innerText = time;
+                bubbleWrap.appendChild(meta);
+            }
+
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.innerText = body;
+
+            bubbleWrap.appendChild(bubble);
+            row.appendChild(bubbleWrap);
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
         }
 
-        function updateUsers(list) {
-            const container = document.getElementById('users');
-            container.innerHTML = list.split(',').filter(u => u).join('<br>');
+        function renderUserList(listStr) {
+            const users = listStr.split(',').filter(u => u && u !== myName);
+            const list = document.getElementById('user-list');
+            list.innerHTML = "";
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'user-item' + (targetUser === u ? ' selected' : '');
+                div.innerHTML = `<div class="status-dot"></div> ${u}`;
+                div.onclick = () => selectUser(u);
+                list.appendChild(div);
+            });
+        }
+
+        function selectUser(user) {
+            if (targetUser === user) {
+                targetUser = null;
+                document.getElementById('recipient-label').style.display = 'none';
+            } else {
+                targetUser = user;
+                document.getElementById('recipient-label').style.display = 'block';
+                document.getElementById('target-name').innerText = user;
+            }
+            // re-render list to show selection
+            document.querySelectorAll('.user-item').forEach(el => {
+                el.classList.toggle('selected', el.innerText.trim() === targetUser);
+            });
         }
 
         function send() {
             const input = document.getElementById('msg-input');
-            if (input.value.trim()) {
-                ws.send("MSG:" + input.value);
-                input.value = "";
+            const text = input.value.trim();
+            if (!text) return;
+
+            if (targetUser) {
+                ws.send("PRIVATE:" + targetUser + "|" + text);
+            } else {
+                ws.send("MSG:" + text);
             }
+            input.value = "";
+            document.getElementById('emoji-picker').style.display = 'none';
         }
 
-        function handleKey(e) { if (e.key === 'Enter') send(); }
+        function sendTyping() {
+            ws.send("TYPING:1");
+        }
+
+        function showTyping(user) {
+            const el = document.getElementById('typing-status');
+            el.innerText = user + " đang soạn tin nhắn...";
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => el.innerText = "", 3000);
+        }
+
+        function toggleEmoji() {
+            const p = document.getElementById('emoji-picker');
+            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
+        }
+
+        function addEmoji(e) {
+            const input = document.getElementById('msg-input');
+            input.value += e;
+            input.focus();
+        }
+
+        function playTing() { document.getElementById('ting-sound').play().catch(() => { }); }
+        function handleEnter(e) { if (e.key === 'Enter') send(); }
     </script>
 </body>
 
