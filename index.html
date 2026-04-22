@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CPS Cloud Chat Widget</title>
+    <title>CPS Premium Messenger - Floating Cloud</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -24,12 +24,13 @@
 
         body {
             font-family: 'Outfit', sans-serif;
-            background: #f1f5f9;
-            /* Nền trang web giả định */
             margin: 0;
             padding: 0;
-            background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #cbd5e1;
+            background-image: radial-gradient(#94a3b8 1px, transparent 1px);
+            background-size: 20px 20px;
             height: 100vh;
+            overflow: hidden;
         }
 
         /* NÚT CHAT HEAD (FLOATING BUTTON) */
@@ -37,97 +38,97 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
             background: var(--primary);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
-            z-index: 1000;
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.5);
+            z-index: 2000;
+            transition: 0.3s;
         }
 
         #chat-launcher:hover {
-            transform: scale(1.1) rotate(5deg);
+            transform: scale(1.1);
         }
 
         #chat-launcher svg {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             fill: white;
         }
 
-        /* CỬA SỔ CHAT TRỊNH TRỌNG (WIDGET WINDOW) */
-        #app-container {
+        /* KHUNG CHAT TO (FULL-SIZE CONTAINER) */
+        #app-wrapper {
             position: fixed;
-            bottom: 110px;
-            right: 30px;
-            width: 420px;
-            height: 600px;
-            background: var(--surface);
-            border-radius: 24px;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: none;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 999;
-            animation: slideUp 0.4s ease-out;
+            justify-content: center;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 1999;
+            animation: fadeIn 0.3s ease;
         }
 
-        @keyframes slideUp {
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(50px);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
-        /* Sidebar & Main */
-        #app-content {
+        #app {
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            background: var(--surface);
+            border-radius: 30px;
             display: flex;
-            flex: 1;
             overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
             position: relative;
         }
 
         #sidebar {
-            width: 120px;
-            background: rgba(0, 0, 0, 0.2);
+            width: 250px;
+            background: rgba(0, 0, 0, 0.3);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             flex-direction: column;
         }
 
         .sidebar-header {
-            padding: 15px;
-            font-size: 0.7em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-dim);
+            padding: 25px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         #user-list {
             flex: 1;
             overflow-y: auto;
-            padding: 5px;
+            padding: 10px;
         }
 
         .user-item {
-            padding: 10px;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 0.8em;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             margin-bottom: 5px;
-            text-align: center;
-            color: var(--text-dim);
         }
 
         .user-item:hover {
@@ -139,33 +140,46 @@
             color: white;
         }
 
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+        }
+
         #chat-main {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: #0b1120;
             position: relative;
+            background: #0b1120;
         }
 
-        /* Message Area */
         #messages-container {
+            position: relative;
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+        }
+
+        #messages {
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         #typing-indicator {
-            font-size: 0.75em;
+            padding: 0 25px 15px 50px;
+            font-size: 0.85em;
             color: #10b981;
-            padding: 0 15px 10px;
             font-style: italic;
             display: none;
         }
 
-        /* Bong bóng chat tinh tế */
+        /* BONG BÓNG CHAT */
         .bubble-row {
             display: flex;
             width: 100%;
@@ -184,83 +198,89 @@
         }
 
         .bubble {
-            max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 18px;
-            font-size: 0.9em;
+            width: fit-content;
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 22px;
+            font-size: 0.95em;
             position: relative;
-            word-wrap: break-word;
             line-height: 1.4;
+            word-wrap: break-word;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
 
         .me .bubble {
             background: var(--me-bubble);
+            border-bottom-right-radius: 4px;
             color: white;
-            border-bottom-right-radius: 2px;
+            margin-right: 8px;
+        }
+
+        .me .bubble::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            right: -6px;
+            width: 15px;
+            height: 15px;
+            background: var(--me-bubble);
+            clip-path: polygon(0 0, 0% 100%, 100% 100%);
         }
 
         .other .bubble {
             background: var(--other-bubble);
-            color: white;
-            border-bottom-left-radius: 2px;
+            border-bottom-left-radius: 4px;
+            margin-left: 8px;
         }
 
-        .sys .bubble {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-dim);
-            font-size: 0.75rem;
-            border-radius: 8px;
+        .other .bubble::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: -6px;
+            width: 15px;
+            height: 15px;
+            background: var(--other-bubble);
+            clip-path: polygon(100% 0, 0 100%, 100% 100%);
         }
 
         .private .bubble {
             background: var(--private-mode) !important;
         }
 
-        /* Header */
-        header {
-            padding: 15px 20px;
-            background: var(--surface);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        .bubble-meta {
+            font-size: 0.75em;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+            margin-left: 12px;
+            margin-right: 12px;
         }
 
-        header h3 {
-            margin: 0;
-            font-size: 1.1em;
-            color: white;
+        .me .bubble-meta {
+            text-align: right;
         }
 
-        .close-btn {
-            cursor: pointer;
-            opacity: 0.6;
-            transition: 0.3s;
-        }
-
-        .close-btn:hover {
-            opacity: 1;
-        }
-
-        /* Input area */
-        #controls {
-            padding: 15px;
+        /* Controls */
+        #control-panel {
+            padding: 20px 25px;
             background: #1e293b;
             border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        #private-label {
+        #private-notice {
             background: var(--private-mode);
-            font-size: 0.7em;
-            padding: 3px 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
+            color: white;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 12px;
             display: none;
+            width: fit-content;
         }
 
-        .input-row {
+        #input-box {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
         }
 
@@ -268,61 +288,75 @@
             flex: 1;
             background: #0f172a;
             border: 1px solid #334155;
-            padding: 10px 15px;
-            border-radius: 10px;
+            padding: 14px 20px;
+            border-radius: 15px;
             color: white;
             outline: none;
         }
 
-        button {
+        #send-btn {
             background: var(--primary);
-            border: none;
             color: white;
-            padding: 10px 15px;
-            border-radius: 10px;
+            border: none;
+            padding: 0 30px;
+            height: 48px;
+            border-radius: 15px;
             cursor: pointer;
             font-weight: 600;
         }
 
-        #login-overlay {
+        #emoji-picker {
+            position: absolute;
+            bottom: 95px;
+            left: 25px;
+            background: var(--surface);
+            border: 1px solid #334155;
+            border-radius: 15px;
+            padding: 15px;
+            display: none;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+        }
+
+        #login-screen {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: var(--surface);
-            z-index: 1001;
+            z-index: 3000;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 30px;
-            text-align: center;
         }
 
-        #emoji-grid {
+        #close-widget {
             position: absolute;
-            bottom: 80px;
-            left: 15px;
-            background: var(--surface);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            padding: 10px;
-            display: none;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-            z-index: 1002;
+            top: 25px;
+            right: 25px;
+            cursor: pointer;
+            font-size: 1.5em;
+            opacity: 0.5;
+            transition: 0.3s;
+            z-index: 3001;
+        }
+
+        #close-widget:hover {
+            opacity: 1;
+            transform: rotate(90deg);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- PHẦN TRANG WEB GIẢ ĐỊNH -->
-    <div style="padding: 100px; text-align: center;">
-        <h1>Chào mừng tới Trang Web của tôi</h1>
-        <p>Bấm vào biểu tượng Chat ở góc dưới bên phải để bắt đầu!</p>
+    <!-- MÔ PHỎNG TRANG WEB ĐANG CÓ GÌ ĐÓ -->
+    <div style="padding: 100px; text-align: center; color: #1e293b">
+        <h1>Trang Web của Quang</h1>
+        <p>Bấm vào bòng bóng chat để bắt đầu thảo luận công khai hoặc riêng tư!</p>
     </div>
 
     <!-- NÚT CHAT HEAD -->
@@ -332,154 +366,166 @@
         </svg>
     </div>
 
-    <!-- CỬA SỔ CHAT -->
-    <div id="app-container">
-        <header>
-            <h3>CPS Cloud Chat</h3>
-            <div class="close-btn" onclick="toggleChat()">✖</div>
-        </header>
+    <!-- CỬA SỔ CHAT TO (WIDGET TO) -->
+    <div id="app-wrapper">
+        <div id="app">
+            <div id="close-widget" onclick="toggleChat()">✖</div>
 
-        <div id="app-content">
-            <!-- ĐĂNG NHẬP -->
-            <div id="login-overlay">
-                <h2>👋 Xin chào!</h2>
-                <p style="font-size: 0.9em; color: var(--text-dim)">Vui lòng nhập tên để trò chuyện</p>
-                <input type="text" id="user-in" placeholder="Họ tên của bạn..."
-                    style="width:100%; padding: 12px; margin: 20px 0; border-radius: 8px; border:1px solid #334155; background:#0f172a; color:white;">
-                <button onclick="login()" style="width:100%">Bắt đầu</button>
+            <div id="login-screen">
+                <div
+                    style="text-align:center; width: 400px; padding: 50px; background: rgba(0,0,0,0.2); border-radius: 30px;">
+                    <h2>💬 Tham gia ngay</h2>
+                    <input type="text" id="username-in" placeholder="Họ tên của bạn..."
+                        style="width: 100%; padding: 15px; margin: 25px 0; border-radius: 12px; background: #0f172a; color: white; border: 1px solid #334155;">
+                    <button onclick="login()"
+                        style="width: 100%; height: 50px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;">Vào
+                        phòng Chat</button>
+                </div>
             </div>
 
             <div id="sidebar">
-                <div class="sidebar-header">Online</div>
+                <div class="sidebar-header">BẠN BÈ ONLINE</div>
                 <div id="user-list"></div>
             </div>
 
             <div id="chat-main">
-                <div id="messages-container"></div>
-                <div id="typing-indicator"></div>
-
-                <div id="emoji-grid">
-                    <span onclick="addEmoji('😊')" style="cursor:pointer">😊</span>
-                    <span onclick="addEmoji('😂')" style="cursor:pointer">😂</span>
-                    <span onclick="addEmoji('❤️')" style="cursor:pointer">❤️</span>
-                    <span onclick="addEmoji('👍')" style="cursor:pointer">👍</span>
-                    <span onclick="addEmoji('🔥')" style="cursor:pointer">🔥</span>
-                    <span onclick="addEmoji('🎉')" style="cursor:pointer">🎉</span>
-                    <span onclick="addEmoji('✨')" style="cursor:pointer">✨</span>
-                    <span onclick="addEmoji('🚀')" style="cursor:pointer">�</span>
+                <div id="messages-container">
+                    <div id="messages"></div>
+                    <div id="typing-indicator"></div>
                 </div>
 
-                <div id="controls">
-                    <div id="private-label">🔒 Đang chat riêng với <span id="target-name"></span></div>
-                    <div class="input-row">
-                        <span onclick="toggleEmoji()" style="cursor:pointer; font-size: 1.4em">😊</span>
-                        <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." oninput="sendTyping()"
+                <div id="emoji-picker">
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('😊')">😊</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('😂')">😂</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('❤️')">❤️</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('👍')">👍</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🔥')">🔥</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🎉')">🎉</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('🚀')">🚀</span>
+                    <span style="cursor:pointer; font-size:1.5em" onclick="addEmoji('✅')">✅</span>
+                </div>
+
+                <div id="control-panel">
+                    <div id="private-notice">🔒 ĐANG CHAT RIÊNG VỚI: <span id="target-name"></span></div>
+                    <div id="input-box">
+                        <span onclick="toggleEmoji()" style="cursor:pointer; font-size: 1.8em;">😊</span>
+                        <input type="text" id="msg-input" placeholder="Nhập nội dung tin nhắn..." oninput="sendTyping()"
                             onkeypress="if(event.key==='Enter') send()">
-                        <button onclick="send()">Gửi</button>
+                        <button id="send-btn" onclick="send()">Gửi đi</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <audio id="ting-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
+    <audio id="ting" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
     <script>
-        let ws, myName = "", targetUser = null, tTimer;
-        // KIỂM TRA LẠI URL CỦA BẠN
+        let ws, myName = "", targetUser = null, typingTimer;
+        // KIỂM TRA LẠI LINK RENDER CỦA BẠN
         const URL = "wss://my-chat-app-2a1d.onrender.com";
 
         function toggleChat() {
-            const app = document.getElementById('app-container');
-            app.style.display = (app.style.display === 'flex') ? 'none' : 'flex';
+            const wrapper = document.getElementById('app-wrapper');
+            wrapper.style.display = (wrapper.style.display === 'flex') ? 'none' : 'flex';
         }
 
         function login() {
-            myName = document.getElementById('user-in').value.trim();
+            myName = document.getElementById('username-in').value.trim();
             if (myName) {
                 ws = new WebSocket(URL);
                 ws.onopen = () => ws.send("LOGIN:" + myName);
-                ws.onmessage = (e) => handle(e.data);
+                ws.onmessage = (e) => handleMessage(e.data);
             }
         }
 
-        function handle(data) {
+        function handleMessage(data) {
             if (data === "LOGIN_SUCCESS") {
-                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('login-screen').style.display = 'none';
             } else if (data.startsWith("CHAT:")) {
-                addMsg(data.substring(5), false);
-                document.getElementById('ting-sound').play().catch(() => { });
+                addBubble(data.substring(5), false);
+                document.getElementById('ting').play().catch(() => { });
             } else if (data.startsWith("PRIVATE_CHAT:")) {
-                addMsg(data.substring(13), true);
-                document.getElementById('ting-sound').play().catch(() => { });
+                addBubble(data.substring(13), true);
+                document.getElementById('ting').play().catch(() => { });
             } else if (data.startsWith("UPDATE_USER_LIST:")) {
-                updateUsers(data.substring(17));
+                updateList(data.substring(17));
             } else if (data.startsWith("SYSTEM_TYPING:")) {
-                showT(data.substring(14));
+                showTyping(data.substring(14));
             }
         }
 
-        function updateUsers(list) {
+        function updateList(list) {
             const users = list.split(',').filter(u => u && u !== myName);
             const container = document.getElementById('user-list');
             container.innerHTML = "";
             users.forEach(u => {
                 const div = document.createElement('div');
                 div.className = 'user-item' + (targetUser === u ? ' selected' : '');
-                div.innerText = u;
+                div.innerHTML = `<div class="status-dot"></div> ${u}`;
                 div.onclick = () => {
                     targetUser = (targetUser === u) ? null : u;
-                    const label = document.getElementById('private-label');
-                    label.style.display = targetUser ? 'block' : 'none';
-                    if (targetUser) document.getElementById('target-name').innerText = targetUser;
-                    updateUsers(list);
+                    const notice = document.getElementById('private-notice');
+                    if (targetUser) {
+                        notice.style.display = 'block';
+                        document.getElementById('target-name').innerText = targetUser;
+                    } else notice.style.display = 'none';
+                    updateList(list);
                 };
                 container.appendChild(div);
             });
         }
 
-        function addMsg(full, isP) {
-            const container = document.getElementById('messages-container');
+        function addBubble(msg, isPrivate) {
+            const container = document.getElementById('messages');
+            const scrollArea = document.getElementById('messages-container');
             const row = document.createElement('div');
 
-            let time = "", sender = "Hệ thống", body = full;
-            const m = full.match(/^\[(.*?)\] \[(.*?)\]: (.*)/);
+            let time = "", sender = "Hệ thống", body = msg;
+            const m = msg.match(/^\[(.*?)\] \[(.*?)\]: (.*)/);
             if (m) { time = m[1]; sender = m[2]; body = m[3]; }
 
             row.className = 'bubble-row ' + (sender === myName ? 'me' : (sender === "Hệ thống" ? 'sys' : 'other'));
-            if (isP) row.classList.add('private');
+            if (isPrivate) row.classList.add('private');
 
-            row.innerHTML = `<div style="display:flex; flex-direction:column; max-width:85%; ${sender === myName ? 'align-items:flex-end' : ''}">
-                ${sender !== "Hệ thống" ? `<span style="font-size:0.7em; color:var(--text-dim); margin:0 5px">${sender} • ${time}</span>` : ''}
-                <div class="bubble">${body}</div>
-            </div>`;
+            const alignStyle = (sender === myName) ? 'align-items: flex-end;' : 'align-items: flex-start;';
+
+            if (sender === "Hệ thống") {
+                row.innerHTML = `<div class="bubble">${body}</div>`;
+            } else {
+                row.innerHTML = `<div style="display:flex; flex-direction:column; ${alignStyle} max-width: 80%;">
+                    <div class="bubble-meta">${sender} • ${time}</div>
+                    <div class="bubble">${body}</div>
+                </div>`;
+            }
 
             container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
+            scrollArea.scrollTop = scrollArea.scrollHeight;
         }
 
         function send() {
             const input = document.getElementById('msg-input');
-            if (!input.value.trim()) return;
-            if (targetUser) ws.send("PRIVATE:" + targetUser + "|" + input.value);
-            else ws.send("MSG:" + input.value);
+            const val = input.value.trim();
+            if (!val) return;
+            if (targetUser) ws.send("PRIVATE:" + targetUser + "|" + val);
+            else ws.send("MSG:" + val);
             input.value = "";
-            document.getElementById('emoji-grid').style.display = 'none';
+            document.getElementById('emoji-picker').style.display = 'none';
         }
 
         function sendTyping() { ws.send("TYPING:1"); }
-        function showT(u) {
-            const ind = document.getElementById('typing-indicator');
-            ind.innerText = u + " đang soạn tin...";
-            ind.style.display = 'block';
-            clearTimeout(tTimer);
-            tTimer = setTimeout(() => ind.style.display = 'none', 2000);
+        function showTyping(u) {
+            const indicator = document.getElementById('typing-indicator');
+            indicator.innerText = u + " đang soạn tin nhắn...";
+            indicator.style.display = 'block';
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => indicator.style.display = 'none', 2000);
         }
         function toggleEmoji() {
-            const grid = document.getElementById('emoji-grid');
-            grid.style.display = (grid.style.display === 'grid') ? 'none' : 'grid';
+            const p = document.getElementById('emoji-picker');
+            p.style.display = (p.style.display === 'grid') ? 'none' : 'grid';
         }
-        function addEmoji(e) { document.getElementById('msg-input').value += e; }
+        function addEmoji(e) { document.getElementById('msg-input').value += e; document.getElementById('msg-input').focus(); }
     </script>
 </body>
 
