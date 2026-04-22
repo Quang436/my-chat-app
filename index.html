@@ -9,14 +9,13 @@
     <style>
         :root {
             --primary: #4f46e5;
-            --primary-light: #818cf8;
             --bg: #0f172a;
             --surface: #1e293b;
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
             --me-bubble: #4f46e5;
             --other-bubble: #334155;
-            --private-bg: #831843;
+            --private-mode: #db2777;
         }
 
         * {
@@ -42,13 +41,11 @@
             border-radius: 24px;
             display: flex;
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Sidebar */
         #sidebar {
-            width: 280px;
+            width: 260px;
             background: rgba(0, 0, 0, 0.2);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
@@ -58,7 +55,6 @@
         .sidebar-header {
             padding: 25px;
             font-weight: 600;
-            font-size: 1.25em;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -76,15 +72,16 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
 
         .user-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .user-item.selected {
-            background: var(--me-bubble);
+            background: var(--private-mode);
+            color: white;
         }
 
         .status-dot {
@@ -94,15 +91,7 @@
             border-radius: 50%;
         }
 
-        #typing-status {
-            padding: 15px;
-            font-size: 0.85em;
-            color: #10b981;
-            min-height: 45px;
-            font-style: italic;
-        }
-
-        /* Main Chat Area */
+        /* QUAN TRỌNG: Thêm position: relative vào đây */
         #chat-main {
             flex: 1;
             display: flex;
@@ -116,15 +105,13 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.02) 1px, transparent 0);
-            background-size: 32px 32px;
+            gap: 10px;
         }
 
-        /* Bubbles */
         .bubble-row {
             display: flex;
             width: 100%;
+            margin-bottom: 5px;
         }
 
         .bubble-row.me {
@@ -137,61 +124,77 @@
 
         .bubble-row.sys {
             justify-content: center;
+            opacity: 0.7;
+            font-size: 0.8em;
         }
 
         .bubble {
             max-width: 70%;
-            padding: 12px 18px;
+            padding: 10px 16px;
             border-radius: 18px;
             font-size: 0.95em;
-            line-height: 1.4;
             position: relative;
         }
 
         .me .bubble {
             background: var(--me-bubble);
             border-bottom-right-radius: 4px;
-            color: white;
         }
 
         .other .bubble {
             background: var(--other-bubble);
             border-bottom-left-radius: 4px;
-            color: white;
-        }
-
-        .sys .bubble {
-            background: transparent;
-            color: var(--text-dim);
-            font-size: 0.8em;
-            font-style: italic;
         }
 
         .private .bubble {
-            background: var(--private-bg) !important;
-            border: 1px solid #f472b6;
+            background: var(--private-mode) !important;
+            box-shadow: 0 0 15px rgba(219, 39, 119, 0.4);
         }
 
         .bubble-meta {
             font-size: 0.7em;
-            margin-bottom: 4px;
             color: var(--text-dim);
+            margin-bottom: 3px;
         }
 
         .me .bubble-meta {
             text-align: right;
         }
 
-        /* Input Area */
         #control-panel {
-            padding: 20px 25px;
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        #private-notice {
+            background: var(--private-mode);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+            display: none;
+            width: fit-content;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         #input-box {
             display: flex;
-            gap: 12px;
+            gap: 15px;
             align-items: center;
         }
 
@@ -199,67 +202,49 @@
             flex: 1;
             background: #0f172a;
             border: 1px solid #334155;
-            padding: 14px 20px;
-            border-radius: 14px;
+            padding: 12px 20px;
+            border-radius: 12px;
             color: white;
             outline: none;
-            transition: 0.3s;
-        }
-
-        #msg-input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
         }
 
         button {
             background: var(--primary);
             color: white;
             border: none;
-            padding: 14px 25px;
-            border-radius: 14px;
+            padding: 0 25px;
+            height: 45px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
         }
 
-        /* Emoji */
-        #emoji-btn {
-            font-size: 1.5em;
-            cursor: pointer;
-            opacity: 0.6;
-            transition: 0.3s;
-        }
-
-        #emoji-btn:hover {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
+        /* BẢNG EMOJI */
         #emoji-picker {
             position: absolute;
-            bottom: 90px;
-            right: 25px;
+            bottom: 85px;
+            right: 20px;
             background: var(--surface);
             border: 1px solid #334155;
             border-radius: 12px;
-            padding: 10px;
+            padding: 12px;
             display: none;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 5px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 100;
         }
 
-        .emoji {
+        .emoji-item {
             cursor: pointer;
-            font-size: 1.3em;
-            padding: 5px;
-            border-radius: 5px;
+            font-size: 1.4em;
+            transition: 0.2s;
         }
 
-        .emoji:hover {
-            background: rgba(255, 255, 255, 0.1);
+        .emoji-item:hover {
+            transform: scale(1.3);
         }
 
-        /* Login */
         #login-screen {
             position: fixed;
             top: 0;
@@ -272,224 +257,170 @@
             justify-content: center;
             align-items: center;
         }
-
-        .login-card {
-            background: var(--surface);
-            padding: 40px;
-            border-radius: 32px;
-            width: 400px;
-            text-align: center;
-        }
-
-        /* Private Target Label */
-        #recipient-label {
-            font-size: 0.8em;
-            color: #f472b6;
-            margin-bottom: 8px;
-            display: none;
-        }
     </style>
 </head>
 
 <body>
 
     <div id="login-screen">
-        <div class="login-card">
-            <h1>👋 Xin chào!</h1>
-            <p style="color: var(--text-dim)">Nhập tên của bạn để bắt đầu trò chuyện</p>
-            <input type="text" id="username-in" placeholder="Ví dụ: Quang"
-                style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; margin: 20px 0;">
-            <button onclick="login()" style="width: 100%; height: 55px; font-size: 1.1em">Vào phòng ngay</button>
+        <div style="background: var(--surface); padding: 40px; border-radius: 24px; text-align: center; width: 350px;">
+            <h2 style="margin-top:0">Đăng nhập Chat</h2>
+            <input type="text" id="username-in" placeholder="Nhập tên của bạn..."
+                style="width: 100%; padding: 12px; margin: 20px 0; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white;">
+            <button onclick="login()" style="width: 100%;">Bắt đầu ngay</button>
         </div>
     </div>
 
     <div id="app">
         <div id="sidebar">
-            <div class="sidebar-header">Phòng Chat</div>
+            <div class="sidebar-header">Bạn bè Online</div>
             <div id="user-list"></div>
-            <div id="typing-status"></div>
+            <div id="typing-box" style="padding: 10px; color: #10b981; font-size: 0.8em; min-height: 40px;"></div>
         </div>
         <div id="chat-main">
             <div id="messages"></div>
 
             <div id="emoji-picker">
-                <span class="emoji" onclick="addEmoji('😀')">😀</span><span class="emoji"
-                    onclick="addEmoji('😂')">😂</span><span class="emoji" onclick="addEmoji('😍')">😍</span>
-                <span class="emoji" onclick="addEmoji('👍')">👍</span><span class="emoji"
-                    onclick="addEmoji('🔥')">🔥</span><span class="emoji" onclick="addEmoji('🎉')">🎉</span>
-                <span class="emoji" onclick="addEmoji('❤️')">❤️</span><span class="emoji"
-                    onclick="addEmoji('🙌')">🙌</span><span class="emoji" onclick="addEmoji('🚀')">🚀</span>
-                <span class="emoji" onclick="addEmoji('🤔')">🤔</span><span class="emoji"
-                    onclick="addEmoji('😎')">😎</span><span class="emoji" onclick="addEmoji('✨')">✨</span>
+                <span class="emoji-item" onclick="addEmoji('😊')">😊</span>
+                <span class="emoji-item" onclick="addEmoji('😂')">😂</span>
+                <span class="emoji-item" onclick="addEmoji('❤️')">❤️</span>
+                <span class="emoji-item" onclick="addEmoji('👍')">👍</span>
+                <span class="emoji-item" onclick="addEmoji('🔥')">🔥</span>
+                <span class="emoji-item" onclick="addEmoji('🎉')">🎉</span>
+                <span class="emoji-item" onclick="addEmoji('🤔')">🤔</span>
+                <span class="emoji-item" onclick="addEmoji('✨')">✨</span>
+                <span class="emoji-item" onclick="addEmoji('🚀')">🚀</span>
+                <span class="emoji-item" onclick="addEmoji('😍')">😍</span>
             </div>
 
             <div id="control-panel">
-                <div id="recipient-label">Đang chat riêng với: <b id="target-name"></b> (Bấm lần nữa để hủy)</div>
+                <div id="private-notice">🔒 Đang chat riêng với: <span id="target-name"></span> (Bấm lại để thoát)</div>
                 <div id="input-box">
-                    <span id="emoji-btn" onclick="toggleEmoji()">😊</span>
+                    <span onclick="toggleEmoji()" id="emoji-toggle"
+                        style="cursor:pointer; font-size: 1.6em; filter: grayscale(1); transition: 0.3s;">😊</span>
                     <input type="text" id="msg-input" placeholder="Nhập tin nhắn..." oninput="sendTyping()"
-                        onkeypress="handleEnter(event)">
-                    <button onclick="send()">Gửi</button>
+                        onkeypress="if(event.key==='Enter') send()">
+                    <button id="send-btn" onclick="send()">Gửi</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <audio id="ting-sound" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
+    <audio id="ting" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
     <script>
-        let ws;
-        let myName = "";
-        let targetUser = null;
-        let typingTimeout;
-        const RENDER_URL = "wss://my-chat-app-2a1d.onrender.com"; // THAY ĐỔI ĐỊA CHỈ CỦA BẠN TẠI ĐÂY
+        let ws, myName = "", targetUser = null, typingTimer;
+        // HÃY ĐẢM BẢO LINK NÀY LÀ CỦA RENDER BẠN ĐANG CHẠY
+        const URL = "wss://my-chat-app-2a1d.onrender.com";
 
         function login() {
             myName = document.getElementById('username-in').value.trim();
-            if (!myName) return;
-            connect();
+            if (myName) {
+                ws = new WebSocket(URL);
+                ws.onopen = () => ws.send("LOGIN:" + myName);
+                ws.onmessage = (e) => handleMessage(e.data);
+            }
         }
 
-        function connect() {
-            ws = new WebSocket(RENDER_URL);
-            ws.onopen = () => ws.send("LOGIN:" + myName);
-            ws.onmessage = (e) => {
-                const data = e.data;
-                if (data === "LOGIN_SUCCESS") {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('msg-input').focus();
-                } else if (data.startsWith("CHAT:")) {
-                    addBubble(data.substring(5), false);
-                    playTing();
-                } else if (data.startsWith("PRIVATE_CHAT:")) {
-                    addBubble(data.substring(13), true);
-                    playTing();
-                } else if (data.startsWith("UPDATE_USER_LIST:")) {
-                    renderUserList(data.substring(17));
-                } else if (data.startsWith("SYSTEM_TYPING:")) {
-                    showTyping(data.substring(14));
-                } else if (data.startsWith("ERROR:")) {
-                    alert(data.substring(6));
-                }
-            };
+        function handleMessage(data) {
+            if (data === "LOGIN_SUCCESS") {
+                document.getElementById('login-screen').style.display = 'none';
+            } else if (data.startsWith("CHAT:")) {
+                addBubble(data.substring(5), false);
+                document.getElementById('ting').play().catch(() => { });
+            } else if (data.startsWith("PRIVATE_CHAT:")) {
+                addBubble(data.substring(13), true);
+                document.getElementById('ting').play().catch(() => { });
+            } else if (data.startsWith("UPDATE_USER_LIST:")) {
+                updateList(data.substring(17));
+            } else if (data.startsWith("SYSTEM_TYPING:")) {
+                showTyping(data.substring(14));
+            }
         }
 
-        function addBubble(fullMsg, isPrivate) {
-            const container = document.getElementById('messages');
-            const row = document.createElement('div');
-
-            // Xử lý tách thông tin: [17:00] [Ten]: Noi dung
-            let time = "", sender = "", body = "";
-            const timeMatch = fullMsg.match(/^\[(.*?)\]/);
-            if (timeMatch) {
-                time = timeMatch[1];
-                const parts = fullMsg.replace(timeMatch[0], "").trim().split("]:");
-                if (parts.length > 1) {
-                    sender = parts[0].replace("[", "").trim();
-                    body = parts[1].trim();
-                } else {
-                    body = fullMsg;
-                    row.className = 'bubble-row sys';
-                }
-            }
-
-            if (!row.className) {
-                row.className = 'bubble-row ' + (sender === myName ? 'me' : 'other');
-                if (isPrivate) row.classList.add('private');
-            }
-
-            const bubbleWrap = document.createElement('div');
-            bubbleWrap.style.display = "flex";
-            bubbleWrap.style.flexDirection = "column";
-
-            if (sender && sender !== myName) {
-                const meta = document.createElement('div');
-                meta.className = 'bubble-meta';
-                meta.innerText = sender + " • " + time;
-                bubbleWrap.appendChild(meta);
-            } else if (sender === myName) {
-                const meta = document.createElement('div');
-                meta.className = 'bubble-meta';
-                meta.innerText = time;
-                bubbleWrap.appendChild(meta);
-            }
-
-            const bubble = document.createElement('div');
-            bubble.className = 'bubble';
-            bubble.innerText = body;
-
-            bubbleWrap.appendChild(bubble);
-            row.appendChild(bubbleWrap);
-            container.appendChild(row);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function renderUserList(listStr) {
-            const users = listStr.split(',').filter(u => u && u !== myName);
-            const list = document.getElementById('user-list');
-            list.innerHTML = "";
+        function updateList(list) {
+            const users = list.split(',').filter(u => u && u !== myName);
+            const container = document.getElementById('user-list');
+            container.innerHTML = "";
             users.forEach(u => {
                 const div = document.createElement('div');
                 div.className = 'user-item' + (targetUser === u ? ' selected' : '');
                 div.innerHTML = `<div class="status-dot"></div> ${u}`;
-                div.onclick = () => selectUser(u);
-                list.appendChild(div);
+                div.onclick = () => {
+                    targetUser = (targetUser === u) ? null : u;
+                    updateUI();
+                    updateList(list);
+                };
+                container.appendChild(div);
             });
         }
 
-        function selectUser(user) {
-            if (targetUser === user) {
-                targetUser = null;
-                document.getElementById('recipient-label').style.display = 'none';
+        function updateUI() {
+            const notice = document.getElementById('private-notice');
+            const btn = document.getElementById('send-btn');
+            if (targetUser) {
+                notice.style.display = 'block';
+                document.getElementById('target-name').innerText = targetUser;
+                btn.style.background = 'var(--private-mode)';
             } else {
-                targetUser = user;
-                document.getElementById('recipient-label').style.display = 'block';
-                document.getElementById('target-name').innerText = user;
+                notice.style.display = 'none';
+                btn.style.background = 'var(--primary)';
             }
-            // re-render list to show selection
-            document.querySelectorAll('.user-item').forEach(el => {
-                el.classList.toggle('selected', el.innerText.trim() === targetUser);
-            });
+        }
+
+        function addBubble(msg, isPrivate) {
+            const container = document.getElementById('messages');
+            const row = document.createElement('div');
+
+            let time = "00:00", sender = "Hệ thống", body = msg;
+            const m = msg.match(/^\[(.*?)\] \[(.*?)\]: (.*)/);
+            if (m) { time = m[1]; sender = m[2]; body = m[3]; }
+
+            row.className = 'bubble-row ' + (sender === myName ? 'me' : (sender === "Hệ thống" ? 'sys' : 'other'));
+            if (isPrivate) row.classList.add('private');
+
+            row.innerHTML = `<div style="display:flex; flex-direction:column">
+                <div class="bubble-meta">${sender !== "Hệ thống" ? sender + " • " + time : ""}</div>
+                <div class="bubble">${body}</div>
+            </div>`;
+
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
         }
 
         function send() {
             const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            if (targetUser) {
-                ws.send("PRIVATE:" + targetUser + "|" + text);
-            } else {
-                ws.send("MSG:" + text);
-            }
+            const val = input.value.trim();
+            if (!val) return;
+            if (targetUser) ws.send("PRIVATE:" + targetUser + "|" + val);
+            else ws.send("MSG:" + val);
             input.value = "";
             document.getElementById('emoji-picker').style.display = 'none';
+            document.getElementById('emoji-toggle').style.filter = 'grayscale(1)';
         }
 
-        function sendTyping() {
-            ws.send("TYPING:1");
+        function sendTyping() { ws.send("TYPING:1"); }
+        function showTyping(u) {
+            const box = document.getElementById('typing-box');
+            box.innerText = u + " đang soạn...";
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => box.innerText = "", 2000);
         }
-
-        function showTyping(user) {
-            const el = document.getElementById('typing-status');
-            el.innerText = user + " đang soạn tin nhắn...";
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => el.innerText = "", 3000);
-        }
-
         function toggleEmoji() {
             const p = document.getElementById('emoji-picker');
-            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
+            const toggle = document.getElementById('emoji-toggle');
+            if (p.style.display === 'grid') {
+                p.style.display = 'none';
+                toggle.style.filter = 'grayscale(1)';
+            } else {
+                p.style.display = 'grid';
+                toggle.style.filter = 'grayscale(0)';
+            }
         }
-
         function addEmoji(e) {
-            const input = document.getElementById('msg-input');
-            input.value += e;
-            input.focus();
+            document.getElementById('msg-input').value += e;
+            document.getElementById('msg-input').focus();
         }
-
-        function playTing() { document.getElementById('ting-sound').play().catch(() => { }); }
-        function handleEnter(e) { if (e.key === 'Enter') send(); }
     </script>
 </body>
 
