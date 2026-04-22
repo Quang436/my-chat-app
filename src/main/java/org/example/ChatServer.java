@@ -12,11 +12,13 @@ public class ChatServer extends WebSocketServer {
 
     public ChatServer(int port) {
         super(new InetSocketAddress(port));
+        // Tự động kiểm tra và dọn dẹp các kết nối "ma" sau mỗi 10 giây
+        setConnectionLostTimeout(10);
     }
 
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
-        System.out.println("Kết nối mới từ: " + conn.getRemoteSocketAddress());
+        // Mới kết nối chưa có tên
     }
 
     @Override
@@ -32,14 +34,26 @@ public class ChatServer extends WebSocketServer {
     public void onMessage(WebSocket conn, String message) {
         if (message.startsWith("LOGIN:")) {
             String username = message.substring(6).trim();
-            if (onlineUsers.containsValue(username)) {
-                conn.send("ERROR:Tên đã tồn tại!");
-            } else {
-                onlineUsers.put(conn, username);
-                conn.send("LOGIN_SUCCESS");
-                broadcast("CHAT:[" + username + " đã tham gia phòng]");
-                updateOnlineList();
+
+            // --- CẢI TIẾN: Nếu tên đã tồn tại, hãy xóa kết nối cũ trước khi cho người mới
+            // vào ---
+            WebSocket oldConn = null;
+            for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
+                if (entry.getValue().equals(username)) {
+                    oldConn = entry.getKey();
+                    break;
+                }
             }
+            if (oldConn != null) {
+                oldConn.close(1000, "Đăng nhập từ nơi khác");
+                onlineUsers.remove(oldConn);
+            }
+
+            onlineUsers.put(conn, username);
+            conn.send("LOGIN_SUCCESS");
+            broadcast("CHAT:[" + username + " đã tham gia phòng]");
+            updateOnlineList();
+
         } else if (message.startsWith("MSG:")) {
             String username = onlineUsers.get(conn);
             if (username != null) {
@@ -50,12 +64,12 @@ public class ChatServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        ex.printStackTrace();
+        // Bỏ qua lỗi nhỏ
     }
 
     @Override
     public void onStart() {
-        System.out.println("WebSocket Server đang chạy tại port: " + getPort());
+        System.out.println("Server đã sẵn sàng tại port: " + getPort());
     }
 
     private void updateOnlineList() {
@@ -67,12 +81,10 @@ public class ChatServer extends WebSocketServer {
     }
 
     public static void main(String[] args) {
-        // Render cấp Port qua biến môi trường $PORT
         int port = 8888;
         String envPort = System.getenv("PORT");
-        if (envPort != null) {
+        if (envPort != null)
             port = Integer.parseInt(envPort);
-        }
 
         ChatServer server = new ChatServer(port);
         server.start();
