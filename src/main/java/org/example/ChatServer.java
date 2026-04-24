@@ -38,22 +38,17 @@ public class ChatServer extends WebSocketServer {
     private void initGUI() {
         if (GraphicsEnvironment.isHeadless())
             return;
-
         frame = new JFrame("CPS Chat Admin Pro");
         frame.setSize(1000, 700);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        // Custom Look
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {
         }
 
-        // Left Panel: User Management
         String[] columns = { "Username", "IP Address", "Muted" };
         tableModel = new DefaultTableModel(columns, 0);
         userTable = new JTable(tableModel);
-
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.setPreferredSize(new Dimension(350, 0));
         leftPanel.setBorder(BorderFactory.createTitledBorder("User Management"));
@@ -79,7 +74,6 @@ public class ChatServer extends WebSocketServer {
         userActions.add(clearBanBtn);
         leftPanel.add(userActions, BorderLayout.SOUTH);
 
-        // Center Panel: Logs
         JPanel centerPanel = new JPanel(new BorderLayout());
         logArea = new JTextArea();
         logArea.setEditable(false);
@@ -88,12 +82,10 @@ public class ChatServer extends WebSocketServer {
         logArea.setForeground(new Color(0, 255, 0));
         centerPanel.add(new JScrollPane(logArea), BorderLayout.CENTER);
 
-        // Bottom Panel: Actions
         JPanel bottomPanel = new JPanel(new BorderLayout());
         broadcastField = new JTextField();
         JButton broadcastBtn = new JButton("Send Global Alert");
         JButton clearChatBtn = new JButton("Clear Global Chat");
-
         broadcastBtn.addActionListener(e -> sendGlobalAlert());
         clearChatBtn.addActionListener(e -> clearAllChat());
 
@@ -101,43 +93,39 @@ public class ChatServer extends WebSocketServer {
         chatActions.add(clearChatBtn);
         chatActions.add(broadcastBtn);
 
-        bottomPanel.add(new JLabel(" Broadcast Path: "), BorderLayout.WEST);
+        bottomPanel.add(new JLabel(" Broadcast: "), BorderLayout.WEST);
         bottomPanel.add(broadcastField, BorderLayout.CENTER);
         bottomPanel.add(chatActions, BorderLayout.EAST);
 
-        // Stats Header
         statsLabel = new JLabel("Total Messages: 0 | Online: 0 | Banned: 0");
         statsLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         frame.add(statsLabel, BorderLayout.NORTH);
-
         frame.add(leftPanel, BorderLayout.WEST);
         frame.add(centerPanel, BorderLayout.CENTER);
         frame.add(bottomPanel, BorderLayout.SOUTH);
-
         frame.setVisible(true);
     }
 
     private void log(String msg) {
         String time = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-        if (!GraphicsEnvironment.isHeadless()) {
+        if (!GraphicsEnvironment.isHeadless() && logArea != null) {
             SwingUtilities.invokeLater(() -> logArea.append("[" + time + "] " + msg + "\n"));
         }
         System.out.println("[" + time + "] " + msg);
     }
 
     private void updateStats() {
-        if (GraphicsEnvironment.isHeadless())
-            return;
-        SwingUtilities.invokeLater(() -> statsLabel.setText("Total Messages: " + totalMessages + " | Online: "
-                + onlineUsers.size() + " | Banned: " + banList.size()));
+        if (!GraphicsEnvironment.isHeadless() && statsLabel != null) {
+            SwingUtilities.invokeLater(() -> statsLabel.setText("Total Messages: " + totalMessages + " | Online: "
+                    + onlineUsers.size() + " | Banned: " + banList.size()));
+        }
     }
 
     private void kickSelected() {
         int row = userTable.getSelectedRow();
         if (row == -1)
             return;
-        String name = (String) tableModel.getValueAt(row, 0);
-        findAndClose(name, "Kicked by Admin", false);
+        findAndClose((String) tableModel.getValueAt(row, 0), "Kicked by Admin", false);
     }
 
     private void muteSelected() {
@@ -157,7 +145,8 @@ public class ChatServer extends WebSocketServer {
                 break;
             }
         }
-        updateTable();
+        broadcastUserList();
+        updateAdminTable();
     }
 
     private void banSelected() {
@@ -170,17 +159,13 @@ public class ChatServer extends WebSocketServer {
     }
 
     private void findAndClose(String name, String reason, boolean isBan) {
-        WebSocket target = null;
         for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
             if (entry.getValue().equals(name)) {
-                target = entry.getKey();
+                entry.getKey().send("CHAT:[Hệ thống]: " + reason);
+                entry.getKey().close(1000, reason);
+                log((isBan ? "BANNED: " : "KICKED: ") + name);
                 break;
             }
-        }
-        if (target != null) {
-            target.send("CHAT:[Hệ thống]: " + reason);
-            target.close(1000, reason);
-            log((isBan ? "BANNED: " : "KICKED: ") + name);
         }
     }
 
@@ -209,7 +194,8 @@ public class ChatServer extends WebSocketServer {
         mutedUsers.remove(conn);
         if (user != null) {
             broadcastAndSave("CHAT:[Hệ thống]: " + user + " đã rời phòng");
-            updateTable();
+            broadcastUserList();
+            updateAdminTable();
             log("EXIT: " + user);
         }
     }
@@ -231,25 +217,49 @@ public class ChatServer extends WebSocketServer {
                     conn.send(h);
             }
             broadcastAndSave("CHAT:[Hệ thống]: " + name + " đã tham gia phòng");
-            updateTable();
+            broadcastUserList();
+            updateAdminTable();
             log("LOGIN: " + name);
         } else if (message.startsWith("MSG:")) {
             if (mutedUsers.contains(conn)) {
-                conn.send("CHAT:[Hệ thống]: Bạn đang bị cấm túc, không thể gửi tin nhắn!");
+                conn.send("CHAT:[Hệ thống]: Bạn đang bị cấm túc!");
                 return;
             }
             totalMessages++;
             handlePublicMessage(conn, message.substring(4));
             updateStats();
         } else if (message.startsWith("PRIVATE:")) {
-            if (mutedUsers.contains(conn)) {
-                conn.send("CHAT:[Hệ thống]: Bạn đang bị cấm túc!");
+            if (mutedUsers.contains(conn))
                 return;
-            }
             handlePrivateMessage(conn, message.substring(8));
         } else if (message.startsWith("TYPING:")) {
             broadcastExcept(conn, "SYSTEM_TYPING:" + onlineUsers.get(conn));
         }
+    }
+
+    // CHỨC NĂNG QUAN TRỌNG: Gửi danh sách cho Client (Phải chạy trên cả Cloud)
+    private void broadcastUserList() {
+        StringBuilder list = new StringBuilder("UPDATE_USER_LIST:");
+        for (String user : onlineUsers.values())
+            list.append(user).append(",");
+        broadcast(list.toString());
+    }
+
+    // CHỨC NĂNG CẬP NHẬT BẢNG ADMIN (Chỉ chạy trên PC)
+    private void updateAdminTable() {
+        if (GraphicsEnvironment.isHeadless() || tableModel == null)
+            return;
+        SwingUtilities.invokeLater(() -> {
+            tableModel.setRowCount(0);
+            for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
+                tableModel.addRow(new Object[] {
+                        entry.getValue(),
+                        entry.getKey().getRemoteSocketAddress().toString(),
+                        mutedUsers.contains(entry.getKey()) ? "YES" : "NO"
+                });
+            }
+            updateStats();
+        });
     }
 
     private void handlePublicMessage(WebSocket sender, String text) {
@@ -272,27 +282,6 @@ public class ChatServer extends WebSocketServer {
                 entry.getKey().send(formatted);
             }
         }
-    }
-
-    private void updateTable() {
-        if (GraphicsEnvironment.isHeadless())
-            return;
-        SwingUtilities.invokeLater(() -> {
-            tableModel.setRowCount(0);
-            for (Map.Entry<WebSocket, String> entry : onlineUsers.entrySet()) {
-                tableModel.addRow(new Object[] {
-                        entry.getValue(),
-                        entry.getKey().getRemoteSocketAddress().toString(),
-                        mutedUsers.contains(entry.getKey()) ? "YES" : "NO"
-                });
-            }
-            updateStats();
-
-            StringBuilder list = new StringBuilder("UPDATE_USER_LIST:");
-            for (String user : onlineUsers.values())
-                list.append(user).append(",");
-            broadcast(list.toString());
-        });
     }
 
     private void broadcastAndSave(String message) {
